@@ -1,4 +1,8 @@
 {
+  "?course_list": "目标专业的json文件",
+  "course_list": "智能科学与技术.json",
+  "?language_course": "公共外语类课程",
+  "language_course": "综合英语（上）",
   "?max_schedulers": "越小运行越快，建议在10k-100k之间",
   "max_schedulers": 100000,
   "?rate": "越小运行越快，取值在0-1之间",

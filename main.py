@@ -4,10 +4,17 @@ import copy
 import time
 import pandas as pd
 import random
+import os
 
 start_time = time.time()
-src_path = "src/CourseList.json"
 config_path = "config/config.json"
+with open(config_path, "r") as f:
+    f = json.load(f)
+    max_schedulers = f["max_schedulers"]
+    rate = f["rate"]
+    language_course = f["language_course"]
+    type_course_list = f["course_list"]
+    src_path = f"src/CourseLists/{type_course_list}"
 
 
 class Instruction:
@@ -141,7 +148,10 @@ class Scheduler:
                 for t in ins.time:
                     new_con = f"{cls.name}${cls.teacher}#第{ins.week[0]}-{ins.week[-1]}周@{ins.loc}|"
                     df.at[t - 1, num_to_day[ins.day]] += new_con
-        df.to_csv(f"res/{self.semester}|{time.asctime(time.localtime(start_time))}.csv", index=False)
+        if not os.path.isdir(f"res/{type_course_list[:-5]}"):
+            os.mkdir(f"res/{type_course_list[:-5]}")
+        df.to_csv(f"res/{type_course_list[:-5]}/{self.semester}|{time.asctime(time.localtime(start_time))}.csv",
+                  index=False)
 
     def is_available(self, new_cls: Class) -> bool:
         for cls in self.class_list:
@@ -168,6 +178,8 @@ if __name__ == "__main__":
             new_course = Course(course["name"], course["id"], course["score"])
             class_list = []
             for cls in course["class_list"]:
+                if course["name"] == "公共外语类" and cls["other_name"] != language_course:
+                    continue
                 new_cls = Class(course["name"] if cls["other_name"] == "" else cls["other_name"], cls["code"],
                                 cls["teacher"],
                                 course["score"])
@@ -185,14 +197,10 @@ if __name__ == "__main__":
     for cou in course_list:
         cou.clean()
     if len(schedulers) == 0:
-        print("CourseList.json is empty!")
+        print("Json is empty!")
         exit()
     max_score = 0.0
     target = schedulers[0]
-    with open(config_path, "r") as f:
-        f = json.load(f)
-        max_schedulers = f["max_schedulers"]
-        rate = f["rate"]
     while len(course_list) > 0:
         if len(schedulers) > max_schedulers:
             schedulers = random.sample(schedulers, int(len(schedulers) ** rate))
